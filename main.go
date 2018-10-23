@@ -31,6 +31,7 @@ var (
 	keyFile           = flag.String("key", "someKeyFile", "A PEM encoded private key file.")
 	caFile            = flag.String("CA", "someCertCAFile", "A PEM eoncoded CA's certificate file.")
 	insecure          = flag.Bool("i", false, "TLS checks are disabled")
+	timeNum           = flag.Int("time", -1, "The time to stop request")
 )
 
 func init() {

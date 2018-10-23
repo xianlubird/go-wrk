@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/tls"
-	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,18 +31,11 @@ func StartClient(url_, heads, requestBody string, meth string, dka bool, respons
 				log.Fatal(err)
 			}
 
-			// Load CA cert
-			caCert, err := ioutil.ReadFile(*caFile)
-			if err != nil {
-				log.Fatal(err)
-			}
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM(caCert)
-
 			// Setup HTTPS client
 			tlsConfig = &tls.Config{
 				Certificates: []tls.Certificate{cert},
-				RootCAs:      caCertPool,
+				//RootCAs:      caCertPool,
+				InsecureSkipVerify: true,
 			}
 			tlsConfig.BuildNameToCertificate()
 		}
@@ -71,14 +64,17 @@ func StartClient(url_, heads, requestBody string, meth string, dka bool, respons
 		resp, err := tr.RoundTrip(req)
 
 		respObj := &Response{}
-
 		if err != nil {
+			fmt.Printf("response err %v", err)
 			respObj.Error = true
 		} else {
 			if resp.ContentLength < 0 { // -1 if the length is unknown
 				data, err := ioutil.ReadAll(resp.Body)
 				if err == nil {
 					respObj.Size = int64(len(data))
+					if respObj.StatusCode >= 500 {
+						fmt.Printf("response 500 %v", data)
+					}
 				}
 			} else {
 				respObj.Size = resp.ContentLength

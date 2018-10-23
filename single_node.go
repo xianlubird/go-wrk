@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 )
 
 func SingleNode(toCall string) []byte {
@@ -26,7 +27,21 @@ func SingleNode(toCall string) []byte {
 		wg.Add(1)
 	}
 
-	wg.Wait()
+	c := make(chan struct{})
+	go func() {
+        defer close(c)
+        wg.Wait()
+    }()
+
+	if *timeNum <= 0 {
+		*timeNum = 1
+	}
+	timeout := time.Duration(*timeNum) * time.Second
+
+	select {
+    case <-c:
+    case <-time.After(timeout):
+    }
 
 	result := CalcStats(
 		responseChannel,
